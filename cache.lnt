@@ -1,0 +1,180 @@
+(******************************************************************************
+ *                 Directory-based cache coherency protocol
+ *-----------------------------------------------------------------------------
+ *   INRIA - Unite de Recherche Rhone-Alpes
+ *   655, avenue de l'Europe
+ *   38330 Montbonnot Saint Martin
+ *   FRANCE
+ *-----------------------------------------------------------------------------
+ *   Module       :       cache.lnt
+ *   Authors      :       A. Kriouile and W. Serwe
+ *   Version      :       1.1
+ *   Date         :       2012/05/15 15:58:21
+ *****************************************************************************)
+
+module CACHE is
+
+ ******************************************************************************
+ * Data types
+ *****************************************************************************)
+
+type REQUEST is
+   READ, WRITE,FETCH,INVALIDATE
+   with "==", "<>"
+end type
+
+-------------------------------------------------------------------------------
+
+type PROCESSOR is
+   PROCESSOR_1, PROCESSOR_2, PROCESSOR_3
+   with "==", "<>"
+end type
+
+-------------------------------------------------------------------------------
+
+type LINE_T is
+   L1, L2, L3
+   with "==", "<>"
+end type
+
+-------------------------------------------------------------------------------
+
+function ISLOCAL (L : LINE_T, A : PROCESSOR) : BOOL is
+   case L in
+        L1 -> return (A == PROCESSOR_1)
+      | L2 -> return (A == PROCESSOR_2)
+      | L3 -> return (A == PROCESSOR_3)
+   end case
+end function
+
+-------------------------------------------------------------------------------
+
+function ISALLOWEDLINE (L : LINE_T) : BOOL IS
+   case L in 
+        L1  -> return true
+      | any -> return false
+   end case
+end function
+
+-------------------------------------------------------------------------------
+
+type STATE is
+   INVALID, SHARED, EXCLUSIVE
+   with "==", "<>"
+end type
+
+-------------------------------------------------------------------------------
+
+function NORMAL (S : STATE, A : PROCESSOR) : BOOL is
+   case A in
+        PROCESSOR_1 -> return true
+      | any     -> return (S == EXCLUSIVE)
+   end case
+end function
+   
+(*****************************************************************************
+ * Channel types
+ *****************************************************************************)
+
+channel LINE_STATUS_CHANNEL is
+   (LINE_T, STATE, PROCESSOR)
+end channel
+
+-------------------------------------------------------------------------------
+
+channel ACTION_EVENT_CHANNEL is
+   (PROCESSOR, REQUEST, LINE_T)
+end channel
+
+(*****************************************************************************
+ * Processes
+ *****************************************************************************)
+
+process MAIN [ACTION_EVENT    : ACTION_EVENT_CHANNEL,
+              GET_LINE_STATUS,
+              PUT_LINE_STATUS : LINE_STATUS_CHANNEL]
+is
+   par GET_LINE_STATUS, PUT_LINE_STATUS in
+      par
+         AGENT [ACTION_EVENT, GET_LINE_STATUS, PUT_LINE_STATUS] (PROCESSOR_1)
+      ||
+         AGENT [ACTION_EVENT, GET_LINE_STATUS, PUT_LINE_STATUS] (PROCESSOR_2)
+      ||
+         AGENT [ACTION_EVENT, GET_LINE_STATUS, PUT_LINE_STATUS] (PROCESSOR_3)
+      end par
+   ||
+      REMOTE_DIRECTORY [GET_LINE_STATUS, PUT_LINE_STATUS]
+   end par
+end process
+
+-------------------------------------------------------------------------------
+
+process REMOTE_DIRECTORY [GET_LINE_STATUS,
+                          PUT_LINE_STATUS : LINE_STATUS_CHANNEL]
+is
+   var LINE : LINE_T,
+       SL1, SL2, SL3,STATUS : STATE,
+       AGL1, AGL2, AGL3, AGENT : PROCESSOR
+   in
+      SL1:= INVALID; SL2:= INVALID; SL3 := INVALID;
+      AGL1 := PROCESSOR_1; AGL2 := PROCESSOR_2; AGL3 := PROCESSOR_3;
+      loop
+         select
+ 	    GET_LINE_STATUS (?LINE, ?STATUS, ?AGENT) where
+	       (((LINE == L1) and (STATUS == SL1) and (AGENT == AGL1)) or
+                ((LINE == L2) and (STATUS == SL2) and (AGENT == AGL2)) or
+                ((LINE == L3) and (STATUS == SL3) and (AGENT == AGL3)))
+               and NORMAL (STATUS, AGENT)
+          []
+            NORMAL (STATUS, AGENT);
+            case LINE in
+                 L1 -> SL1 := STATUS; AGL1 := AGENT
+	       | L2 -> SL2 := STATUS; AGL2 := AGENT
+	       | L3 -> SL3 := STATUS; AGL3 := AGENT
+            end case
+         end select
+      end loop      
+   end var
+end process
+
+-------------------------------------------------------------------------------
+
+process AGENT [ACTION_EVENT : ACTION_EVENT_CHANNEL,
+               GET_LINE_STATUS,
+               PUT_LINE_STATUS : LINE_STATUS_CHANNEL] (PROCESSOR_ID : PROCESSOR)
+is
+   var EVENT:REQUEST, LINE:LINE_T, STATUS:STATE, AGENT:PROCESSOR in 
+      loop
+         ACTION_EVENT (PROCESSOR_ID,?EVENT,?LINE) where ISALLOWEDLINE (LINE);
+         GET_LINE_STATUS (LINE, ?STATUS,?AGENT);
+         case EVENT in
+              READ -> if ISLOCAL (LINE,PROCESSOR_ID) then
+                       case STATUS in
+                            INVALID | SHARED -> PUT_LINE_STATUS (LINE, SHARED, PROCESSOR_ID)
+                          | EXCLUSIVE      -> if (AGENT == PROCESSOR_ID) then
+                                          PUT_LINE_STATUS (LINE, EXCLUSIVE, PROCESSOR_ID)
+                                       else
+                                          PUT_LINE_STATUS (LINE, SHARED, PROCESSOR_ID)
+                                       end if 
+                       end case
+                    else
+                       PUT_LINE_STATUS (LINE, SHARED, PROCESSOR_ID)
+                    end if
+            | WRITE -> if ISLOCAL (LINE,AGENT) then
+			case STATUS in
+			INVALID | EXCLUSIVE -> PUT_LINE_STATUS (LINE, EXCLUSIVE, PROCESSOR_ID)
+			| SHARED -> if (AGENT == PROCESSOR_ID) then
+			    PUT_LINE_STATUS(LINE, EXCLUSIVE, PROCESSOR_ID)
+			  else
+			    PUT_LINE_STATUS(LINE, INVALID, AGENT)
+			  end if 
+			  
+            PUT_LINE_STATUS (LINE, EXCLUSIVE, PROCESSOR_ID)
+            | FETCH -> PUT_LINE_STATUS(LINE, SHARED, PROCESSOR_ID)
+            | INVALIDATE -> PUT_LINE_STATUS(LINE, INVALID, PROCESSOR_ID)
+         end case
+      end loop
+   end var
+end process
+
+end module
