@@ -53,6 +53,8 @@ function ISALLOWEDLINE (L : LINE_T) : BOOL IS
    case L in 
         L1  -> return true
       | any -> return false
+
+(****** need to modify to represent using multiple lines of cache ***********)
    end case
 end function
 
