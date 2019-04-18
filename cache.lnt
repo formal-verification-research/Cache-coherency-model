@@ -14,7 +14,7 @@
 
 module CACHE is
 
- ******************************************************************************
+ (******************************************************************************
  * Data types
  *****************************************************************************)
 
@@ -153,7 +153,7 @@ is
               READ -> if ISLOCAL (LINE,PROCESSOR_ID) then
                        case STATUS in
                             INVALID | SHARED -> PUT_LINE_STATUS (LINE, SHARED, PROCESSOR_ID)
-                          | EXCLUSIVE      -> if (AGENT == PROCESSOR_ID) then
+                          | EXCLUSIVE  -> if (AGENT == PROCESSOR_ID) then
                                           PUT_LINE_STATUS (LINE, EXCLUSIVE, PROCESSOR_ID)
                                        else
                                           PUT_LINE_STATUS (LINE, SHARED, PROCESSOR_ID)
@@ -169,10 +169,10 @@ is
 			    PUT_LINE_STATUS(LINE, EXCLUSIVE, PROCESSOR_ID)
 			  else
 			    PUT_LINE_STATUS(LINE, INVALID, AGENT)
-			  end if 
-			  
-            PUT_LINE_STATUS (LINE, EXCLUSIVE, PROCESSOR_ID)
-            | FETCH -> PUT_LINE_STATUS(LINE, SHARED, PROCESSOR_ID)
+			  end if
+			end case
+ 	              end if
+	    | FETCH -> PUT_LINE_STATUS(LINE, SHARED, PROCESSOR_ID)
             | INVALIDATE -> PUT_LINE_STATUS(LINE, INVALID, PROCESSOR_ID)
          end case
       end loop
