@@ -6,11 +6,11 @@
 
    par GET_LINE_STATUS, PUT_LINE_STATUS in
       par
-          AGENT [ACTION_EVENT, GET_LINE_STATUS, PUT_LINE_STATUS] (AGENT_1)
+          AGENT [ACTION_EVENT, GET_LINE_STATUS, PUT_LINE_STATUS] (PROCESSOR_1)
       ||
-          AGENT [ACTION_EVENT, GET_LINE_STATUS, PUT_LINE_STATUS] (AGENT_2)
+          AGENT [ACTION_EVENT, GET_LINE_STATUS, PUT_LINE_STATUS] (PROCESSOR_2)
       ||
-          AGENT [ACTION_EVENT, GET_LINE_STATUS, PUT_LINE_STATUS] (AGENT_3)
+          AGENT [ACTION_EVENT, GET_LINE_STATUS, PUT_LINE_STATUS] (PROCESSOR_3)
       end par
    ||
        REMOTE_DIRECTORY [GET_LINE_STATUS, PUT_LINE_STATUS]
@@ -18,12 +18,12 @@
 
 -- Step 2: compositional generation of the LOTOS specification
 
-% (cd LOTOS ; echo "" ; svl)
+-- (cd LOTOS ; echo "" ; svl)
 
 -- Step 3: comparison of the generated graphs
 
-% "DIAG.bcg" = strong comparison "LOTOS/cache.bcg" == "cache.bcg" ;
+-- "DIAG.bcg" = strong comparison "LOTOS/cache.bcg" == "cache.bcg" ;
 
 -- Step 4: cleanup
 
-% SVL_COMMAND_FOR_CLEAN "(cd LOTOS ; svl -clean)"
+-- SVL_COMMAND_FOR_CLEAN "(cd LOTOS ; svl -clean)"
