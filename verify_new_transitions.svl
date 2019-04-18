@@ -1,0 +1,3 @@
+(* hopefully run the cache.lnt model through my check invalid property *)
+
+"Diag.bcg" = verify "invalid_transistion.mcl" using bfs with evaluator4 in "cache.bcg"

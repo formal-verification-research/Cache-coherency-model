@@ -1,0 +1,7 @@
+(* check that the new transitions to invalid state take effect *)
+
+
+(
+   [true* . ('PUT_LINE_STATUS !LINE !STATE !AGENT_ID') ]
+       inevitable ('GET_LINE_STATUS !LINE !STATE AGENT_ID')
+)
