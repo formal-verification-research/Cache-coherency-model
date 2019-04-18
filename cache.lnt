@@ -127,8 +127,9 @@ is
                 ((LINE == L2) and (STATUS == SL2) and (AGENT == AGL2)) or
                 ((LINE == L3) and (STATUS == SL3) and (AGENT == AGL3)))
                and NORMAL (STATUS, AGENT)
-          []
-            NORMAL (STATUS, AGENT);
+         []
+	    PUT_LINE_STATUS (?LINE, ?STATUS, ?AGENT) where
+              NORMAL (STATUS, AGENT);
             case LINE in
                  L1 -> SL1 := STATUS; AGL1 := AGENT
 	       | L2 -> SL2 := STATUS; AGL2 := AGENT
