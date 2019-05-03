@@ -2,6 +2,6 @@
 
 
 (
-   [true* . ('PUT_LINE_STATUS !LINE !STATE !AGENT_ID') ]
-       inevitable ('GET_LINE_STATUS !LINE !STATE AGENT_ID')
+   [true* . ('PUT_LINE_STATUS !L1 !INVALID !PROCESSOR_1') ]
+       inevitable ('GET_LINE_STATUS !L1 !INVALID !PROCESSOR_1')
 )
