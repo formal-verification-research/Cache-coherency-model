@@ -1,7 +1,8 @@
 (* check that the new transitions to invalid state take effect *)
 
+library standard.mcl end_library
 
 (
-   [true* . ('PUT_LINE_STATUS !L1 !INVALID !PROCESSOR_1') ]
-       inevitable ('GET_LINE_STATUS !L1 !INVALID !PROCESSOR_1')
+   [true* . ("PUT_LINE_STATUS !L1 !INVALID !PROCESSOR_1") ]
+       inevitable ("GET_LINE_STATUS !L1 !INVALID !PROCESSOR_1")
 )

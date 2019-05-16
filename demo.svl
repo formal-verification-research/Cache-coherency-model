@@ -16,6 +16,8 @@
        REMOTE_DIRECTORY [GET_LINE_STATUS, PUT_LINE_STATUS]
    end par;
 
+"diag.bcg" = verify "invalid_transistion.mcl" using bfs with evaluator4 in "cache.bcg"
+
 -- Step 2: compositional generation of the LOTOS specification
 
 -- (cd LOTOS ; echo "" ; svl)
