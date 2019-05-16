@@ -1,3 +1,12 @@
 (* hopefully run the cache.lnt model through my check invalid property *)
 
-"Diag.bcg" = verify "invalid_transistion.mcl" using bfs with evaluator4 in "cache.bcg"
+property PROPERTY_1
+	"check that the new transitions to invalid state take effect"
+is
+	"Diag_v4.bcg" = "cache.bcg" |= with evaluator4
+		library standard.mcl end_library
+		[true* . "PUT_LINE_STATUS !L1 !INVALID !PROCESSOR_1"]
+		inevitable ("GET_LINE_STATUS !L1 !INVALID !PROCESSOR_1") ;
+	expected FALSE;
+end property
+
