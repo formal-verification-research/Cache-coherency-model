@@ -3,6 +3,12 @@
 property PROPERTY_1
 	"check that the new transitions to invalid state take effect"
 is
+	"Diag_v3.bcg" = "cache.bcg" |=
+		library standard.mcl end_library
+		[true* . 'PUT_LINE_STATUS !L1 !INVALID !PROCESSOR_1']
+		inevitable ("GET_LINE_STATUS !L1 !INVALID !PROCESSOR_1") ;
+	expected FALSE;
+
 	"Diag_v4.bcg" = "cache.bcg" |= with evaluator4
 		library standard.mcl end_library
 		[true* . "PUT_LINE_STATUS !L1 !INVALID !PROCESSOR_1"]
