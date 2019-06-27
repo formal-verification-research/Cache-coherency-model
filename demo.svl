@@ -3,7 +3,7 @@
 % DEFAULT_PROCESS_FILE="cache.lnt"
 
 "cache.bcg" = root leaf strong reduction of
-
+(* hide all but "PUT_LINE_STATUS !L1 !invalid !processor_1,GET_LINE_STATUS !L1 !invalid !processor_1" in*)
    par GET_LINE_STATUS, PUT_LINE_STATUS in
       par
           AGENT [ACTION_EVENT, GET_LINE_STATUS, PUT_LINE_STATUS] (PROCESSOR_1)
@@ -16,16 +16,12 @@
        REMOTE_DIRECTORY [GET_LINE_STATUS, PUT_LINE_STATUS]
    end par;
 
-"diag.bcg" = verify "invalid_transistion.mcl" using bfs with evaluator4 in "cache.bcg"
-
--- Step 2: compositional generation of the LOTOS specification
-
--- (cd LOTOS ; echo "" ; svl)
-
--- Step 3: comparison of the generated graphs
-
--- "DIAG.bcg" = strong comparison "LOTOS/cache.bcg" == "cache.bcg" ;
-
--- Step 4: cleanup
-
--- SVL_COMMAND_FOR_CLEAN "(cd LOTOS ; svl -clean)"
+property PROPERTY_1
+	"check that the new transitions to invalid state take effect"
+is
+	"invalid.bcg" = "cache.bcg" |= with evaluator4
+		library standard.mcl end_library
+		[true* . "PUT_LINE_STATUS !L1 !INVALID !PROCESSOR_1"]
+		inevitable ("GET_LINE_STATUS !L1 !INVALID !PROCESSOR_1") ;
+	expected TRUE;
+end property
