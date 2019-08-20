@@ -1,0 +1,2 @@
+
+exp2c: WARNING line 1: label "PUT_LINE_STATUS !L1 !invalid !processor_1,GET_LINE_STATUS !L1 !invalid !processor_1" contains offer(s) but matching mode is gate

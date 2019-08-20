@@ -1,0 +1,251 @@
+
+svl clean info: [persistent] cache.bcg
+
+svl clean info: [temporary] svl001_composition_1.exp
+
+% 2>>"demo.log" rm -f "svl001_composition_1.exp" ; touch "svl001_composition_1.exp"
+command exit with status 0
+
+svl clean info: [temporary] svl003_reduced_AGENT.bcg
+
+svl clean info: [temporary] svl002_AGENT.bcg
+
+"svl002_AGENT.bcg" = generation of "cache.lnt":"AGENT [ACTION_EVENT, GET_LINE_STATUS, PUT_LINE_STATUS] (PROCESSOR_1)"
+
+svl clean info: [temporary] generator
+
+svl clean info: [temporary] generator.o
+
+svl clean info: [temporary] cache.o
+
+svl clean info: [temporary] cache.err
+
+% lnt.open  -root 'AGENT [ACTION_EVENT, GET_LINE_STATUS, PUT_LINE_STATUS] (PROCESSOR_1)' "cache.lnt"  generator  "svl002_AGENT.bcg"
+
+lnt.open: translating ``cache.lnt'' to ``/tmp/sterling_lnt.open_BsxdXc/cache.lotos'' ...
+
+lnt.open: calling caesar.open for ``cache.lotos'' ...
+caesar.open: using ``/home/sterling/cadp/src/open_caesar/generator.c''
+caesar.open: calling ``caesar.adt -debug -silent cache''
+cadp_indent: cannot find ``indent''
+             file ``cache.h'' will not be formatted
+caesar.open: calling ``lnt_check'' for ``cache.h''
+caesar.open: calling ``caesar -root '-' -silent -open cache''
+caesar.open: running ``generator svl002_AGENT.bcg'' for ``cache.lotos''
+command exit with status 0
+
+info about svl002_AGENT.bcg:
+    (* 42 states, 98 transitions, 3.0 Kbytes *)
+
+"svl003_reduced_AGENT.bcg" = strong reduction of "svl002_AGENT.bcg"
+
+% bcg_min   -strong  "svl002_AGENT.bcg" "svl003_reduced_AGENT.bcg"
+command exit with status 0
+
+info about svl003_reduced_AGENT.bcg:
+    (* 8 states, 43 transitions, 2.9 Kbytes *)
+
+svl clean info: [temporary] svl005_reduced_AGENT.bcg
+
+svl clean info: [temporary] svl004_AGENT.bcg
+
+"svl004_AGENT.bcg" = generation of "cache.lnt":"AGENT [ACTION_EVENT, GET_LINE_STATUS, PUT_LINE_STATUS] (PROCESSOR_2)"
+
+svl clean info: [temporary] generator
+
+svl clean info: [temporary] generator.o
+
+svl clean info: [temporary] cache.o
+
+svl clean info: [temporary] cache.err
+
+% lnt.open  -root 'AGENT [ACTION_EVENT, GET_LINE_STATUS, PUT_LINE_STATUS] (PROCESSOR_2)' "cache.lnt"  generator  "svl004_AGENT.bcg"
+
+lnt.open: translating ``cache.lnt'' to ``/tmp/sterling_lnt.open_BTIQcZ/cache.lotos'' ...
+
+lnt.open: calling caesar.open for ``cache.lotos'' ...
+caesar.open: using ``/home/sterling/cadp/src/open_caesar/generator.c''
+caesar.open: calling ``caesar.adt -debug -silent cache''
+cadp_indent: cannot find ``indent''
+             file ``cache.h'' will not be formatted
+caesar.open: calling ``lnt_check'' for ``cache.h''
+caesar.open: calling ``caesar -root '-' -silent -open cache''
+caesar.open: running ``generator svl004_AGENT.bcg'' for ``cache.lotos''
+command exit with status 0
+
+info about svl004_AGENT.bcg:
+    (* 42 states, 98 transitions, 3.0 Kbytes *)
+
+"svl005_reduced_AGENT.bcg" = strong reduction of "svl004_AGENT.bcg"
+
+% bcg_min   -strong  "svl004_AGENT.bcg" "svl005_reduced_AGENT.bcg"
+command exit with status 0
+
+info about svl005_reduced_AGENT.bcg:
+    (* 8 states, 35 transitions, 3.0 Kbytes *)
+
+svl clean info: [temporary] svl007_reduced_AGENT.bcg
+
+svl clean info: [temporary] svl006_AGENT.bcg
+
+"svl006_AGENT.bcg" = generation of "cache.lnt":"AGENT [ACTION_EVENT, GET_LINE_STATUS, PUT_LINE_STATUS] (PROCESSOR_3)"
+
+svl clean info: [temporary] generator
+
+svl clean info: [temporary] generator.o
+
+svl clean info: [temporary] cache.o
+
+svl clean info: [temporary] cache.err
+
+% lnt.open  -root 'AGENT [ACTION_EVENT, GET_LINE_STATUS, PUT_LINE_STATUS] (PROCESSOR_3)' "cache.lnt"  generator  "svl006_AGENT.bcg"
+
+lnt.open: translating ``cache.lnt'' to ``/tmp/sterling_lnt.open_zeU9am/cache.lotos'' ...
+
+lnt.open: calling caesar.open for ``cache.lotos'' ...
+caesar.open: using ``/home/sterling/cadp/src/open_caesar/generator.c''
+caesar.open: calling ``caesar.adt -debug -silent cache''
+cadp_indent: cannot find ``indent''
+             file ``cache.h'' will not be formatted
+caesar.open: calling ``lnt_check'' for ``cache.h''
+caesar.open: calling ``caesar -root '-' -silent -open cache''
+caesar.open: running ``generator svl006_AGENT.bcg'' for ``cache.lotos''
+command exit with status 0
+
+info about svl006_AGENT.bcg:
+    (* 42 states, 98 transitions, 3.0 Kbytes *)
+
+"svl007_reduced_AGENT.bcg" = strong reduction of "svl006_AGENT.bcg"
+
+% bcg_min   -strong  "svl006_AGENT.bcg" "svl007_reduced_AGENT.bcg"
+command exit with status 0
+
+info about svl007_reduced_AGENT.bcg:
+    (* 8 states, 35 transitions, 3.0 Kbytes *)
+
+svl clean info: [temporary] svl009_reduced_REMOTE_DIRECTORY.bcg
+
+svl clean info: [temporary] svl008_REMOTE_DIRECTORY.bcg
+
+"svl008_REMOTE_DIRECTORY.bcg" = generation of "cache.lnt":"REMOTE_DIRECTORY [GET_LINE_STATUS, PUT_LINE_STATUS]"
+
+svl clean info: [temporary] generator
+
+svl clean info: [temporary] generator.o
+
+svl clean info: [temporary] cache.o
+
+svl clean info: [temporary] cache.err
+
+% lnt.open  -root 'REMOTE_DIRECTORY [GET_LINE_STATUS, PUT_LINE_STATUS]' "cache.lnt"  generator  "svl008_REMOTE_DIRECTORY.bcg"
+
+lnt.open: translating ``cache.lnt'' to ``/tmp/sterling_lnt.open_RtsJLu/cache.lotos'' ...
+
+lnt.open: calling caesar.open for ``cache.lotos'' ...
+caesar.open: using ``/home/sterling/cadp/src/open_caesar/generator.c''
+caesar.open: calling ``caesar.adt -debug -silent cache''
+cadp_indent: cannot find ``indent''
+             file ``cache.h'' will not be formatted
+caesar.open: calling ``lnt_check'' for ``cache.h''
+caesar.open: calling ``caesar -root '-' -silent -open cache''
+caesar.open: running ``generator svl008_REMOTE_DIRECTORY.bcg'' for ``cache.lotos''
+command exit with status 0
+
+info about svl008_REMOTE_DIRECTORY.bcg:
+    (* 2881 states, 51196 transitions, 93.8 Kbytes *)
+
+"svl009_reduced_REMOTE_DIRECTORY.bcg" = strong reduction of "svl008_REMOTE_DIRECTORY.bcg"
+
+% bcg_min   -strong  "svl008_REMOTE_DIRECTORY.bcg" "svl009_reduced_REMOTE_DIRECTORY.bcg"
+command exit with status 0
+
+info about svl009_reduced_REMOTE_DIRECTORY.bcg:
+    (* 180 states, 3180 transitions, 9.2 Kbytes *)
+
+"svl001_composition_1.exp" =
+    par GET_LINE_STATUS, PUT_LINE_STATUS in
+        par
+            "svl003_reduced_AGENT.bcg"
+        ||
+            "svl005_reduced_AGENT.bcg"
+        ||
+            "svl007_reduced_AGENT.bcg"
+        end par
+    ||
+        "svl009_reduced_REMOTE_DIRECTORY.bcg"
+    end par
+
+svl clean info: [temporary] svl010_composition_1.bcg
+
+"svl010_composition_1.bcg" = generation of "svl001_composition_1.exp"
+
+svl clean info: [temporary] generator
+
+svl clean info: [temporary] generator.o
+
+svl clean info: [temporary] svl001_composition_1.c
+
+svl clean info: [temporary] svl001_composition_1.o
+
+% exp.open -strong   "svl001_composition_1.exp"  generator  "svl010_composition_1.bcg"
+exp.open: using ``/home/sterling/cadp/src/open_caesar/generator.c''
+exp.open: generating svl001_composition_1.c ...
+exp.open: compiling svl001_composition_1.c ...
+/home/sterling/cadp/src/com/cadp_cc   -c -I/home/sterling/cadp/incl -o svl001_composition_1.o svl001_composition_1.c
+/home/sterling/cadp/src/com/cadp_cc -I. -I/home/sterling/cadp/incl -I/home/sterling/cadp/src/open_caesar  -c /home/sterling/cadp/src/open_caesar/generator.c -o generator.o
+/home/sterling/cadp/src/com/cadp_cc  generator.o svl001_composition_1.o -o generator -L/home/sterling/cadp/bin.x64 -lexp_open -L/home/sterling/cadp/bin.x64 -lcaesar -lBCG_IO -lBCG -L/home/sterling/cadp/bin.x64 -lBCG_IO -lBCG -lm
+exp.open: running ``generator svl010_composition_1.bcg'' for ``./svl001_composition_1.exp''
+command exit with status 0
+
+info about svl010_composition_1.bcg:
+    (* 2304 states, 8384 transitions, 20.7 Kbytes *)
+
+"cache.bcg" = strong reduction of "svl010_composition_1.bcg"
+
+% bcg_min   -strong  "svl010_composition_1.bcg" "cache.bcg"
+command exit with status 0
+
+info about cache.bcg:
+    (* 1017 states, 4376 transitions, 13.2 Kbytes *)
+
+property PROPERTY_1
+ | check that the new transitions to invalid state take effect
+
+svl clean info: [temporary] svl000_display.txt
+
+svl clean info: [temporary] svl011_formula_inline
+
+svl clean info: [persistent] invalid.bcg
+
+svl clean info: [temporary] svl011_formula_inline.mcl
+
+svl clean info: [temporary] svl011_formula_inline.xm
+
+"svl011_formula_inline.mcl" =
+    library standard.mcl end_library
+    [true* . "PUT_LINE_STATUS !L1 !INVALID !PROCESSOR_1"]
+    inevitable ("GET_LINE_STATUS !L1 !INVALID !PROCESSOR_1")
+
+"invalid.bcg" = verify "svl011_formula_inline.mcl" in "cache.bcg"
+
+svl clean info: [temporary] svl000_output.bcg
+
+svl clean info: [temporary] evaluator4
+
+svl clean info: [temporary] evaluator4.o
+
+% bcg_open   "cache.bcg"  evaluator4 -source "demo.svl:21" -dfs -diag "svl000_output.bcg"  "svl011_formula_inline.mcl"
+
+svl clean info: [temporary] svl000_stdout
+bcg_open: using ``/home/sterling/cadp/bin.x64/evaluator4.a''
+bcg_open: running ``evaluator4 -source demo.svl:21 -dfs -diag svl000_output.bcg svl011_formula_inline.mcl'' for ``./cache.bcg''
+
+FALSE
+(consult diagnostic in file ``svl000_output.bcg'')
+command exit with status 0
+
+% bcg_io   "svl000_output.bcg"   "invalid.bcg"
+command exit with status 0
+
+FAIL
+

@@ -151,7 +151,7 @@ is
          ACTION_EVENT (PROCESSOR_ID,?EVENT,?LINE) where ISALLOWEDLINE (LINE);
          GET_LINE_STATUS (LINE, ?STATUS,?AGENT);
          case EVENT in
-              READ -> if ISLOCAL (LINE,PROCESSOR_ID) then
+        READ -> if ISLOCAL (LINE,PROCESSOR_ID) then
                        case STATUS in
                             INVALID | SHARED -> PUT_LINE_STATUS (LINE, SHARED, PROCESSOR_ID)
                           | EXCLUSIVE  -> if (AGENT == PROCESSOR_ID) then
@@ -163,7 +163,7 @@ is
                     else
                        PUT_LINE_STATUS (LINE, SHARED, PROCESSOR_ID)
                     end if
-            | WRITE -> if ISLOCAL (LINE,AGENT) then
+        | WRITE -> if ISLOCAL (LINE,AGENT) then
 			case STATUS in
 			INVALID | EXCLUSIVE -> PUT_LINE_STATUS (LINE, EXCLUSIVE, PROCESSOR_ID)
 			| SHARED -> if (AGENT == PROCESSOR_ID) then
@@ -174,7 +174,7 @@ is
 			end case
  	              end if
 	    | FETCH -> PUT_LINE_STATUS(LINE, SHARED, PROCESSOR_ID)
-            | INVALIDATE -> PUT_LINE_STATUS(LINE, INVALID, PROCESSOR_ID)
+        | INVALIDATE -> PUT_LINE_STATUS(LINE, INVALID, PROCESSOR_ID)
          end case
       end loop
    end var
