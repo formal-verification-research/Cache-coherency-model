@@ -12,170 +12,174 @@
  *   Date         :       2012/05/15 15:58:21
  *****************************************************************************)
 
-module CACHE is
+module cache is
 
  (******************************************************************************
  * Data types
  *****************************************************************************)
 
-type REQUEST is
-   READ, WRITE,FETCH,INVALIDATE
+type request is
+   read, write,fetch,invalidate
    with "==", "<>"
 end type
 
 -------------------------------------------------------------------------------
 
-type PROCESSOR is
-   PROCESSOR_1, PROCESSOR_2, PROCESSOR_3
+type processor is
+   processor_1, processor_2, processor_3
    with "==", "<>"
 end type
 
 -------------------------------------------------------------------------------
 
-type LINE_T is
+type line_t is
    L1, L2, L3
    with "==", "<>"
 end type
 
--------------------------------------------------------------------------------
-
-function ISLOCAL (L : LINE_T, A : PROCESSOR) : BOOL is
-   case L in
-        L1 -> return (A == PROCESSOR_1)
-      | L2 -> return (A == PROCESSOR_2)
-      | L3 -> return (A == PROCESSOR_3)
-   end case
-end function
 
 -------------------------------------------------------------------------------
 
-function ISALLOWEDLINE (L : LINE_T) : BOOL IS
-   case L in 
-        L1  -> return true
-      | any -> return false
 
-(****** need to modify to represent using multiple lines of cache ***********)
-   end case
-end function
-
--------------------------------------------------------------------------------
-
-type STATE is
-   INVALID, SHARED, EXCLUSIVE
-   with "==", "<>"
+type miss is
+	read_miss, write_miss, write_back
+	with "==", "<>"
 end type
 
 -------------------------------------------------------------------------------
 
-function NORMAL (S : STATE, A : PROCESSOR) : BOOL is
-   case A in
-        PROCESSOR_1 -> return true
-      | any     -> return (S == EXCLUSIVE)
-   end case
-end function
-   
+type state is
+   invalid, shared, exclusive
+   with "==", "<>"
+end type
+
 (*****************************************************************************
- * Channel types
+ * channel types
  *****************************************************************************)
 
-channel LINE_STATUS_CHANNEL is
-   (LINE_T, STATE, PROCESSOR)
+channel line_status_channel is
+   (line_t, state, processor)
 end channel
 
 -------------------------------------------------------------------------------
 
-channel ACTION_EVENT_CHANNEL is
-   (PROCESSOR, REQUEST, LINE_T)
+channel action_event_channel is
+   (processor, request, line_t)
 end channel
+
+-------------------------------------------------------------------------------
+
+channel cache_miss_channel is
+(processor, miss, line_t)
 
 (*****************************************************************************
  * Processes
  *****************************************************************************)
 
-process MAIN [ACTION_EVENT    : ACTION_EVENT_CHANNEL,
-              GET_LINE_STATUS,
-              PUT_LINE_STATUS : LINE_STATUS_CHANNEL]
+process MAIN [action_event    : action_event_channel,
+              get_line_status,
+              put_line_status : line_status_channel,
+			  put_cache_miss, 
+			  get_cache_miss : cache_miss_channel]
 is
-   par GET_LINE_STATUS, PUT_LINE_STATUS in
+   par get_line_status, put_line_status in
       par
-         AGENT [ACTION_EVENT, GET_LINE_STATUS, PUT_LINE_STATUS] (PROCESSOR_1)
+         agent [action_event, get_line_status, put_line_status, put_cache_miss, get_cache_miss ] (processor_1)
       ||
-         AGENT [ACTION_EVENT, GET_LINE_STATUS, PUT_LINE_STATUS] (PROCESSOR_2)
+         agent [action_event, get_line_status, put_line_status, put_cache_miss, get_cache_miss] (processor_2)
       ||
-         AGENT [ACTION_EVENT, GET_LINE_STATUS, PUT_LINE_STATUS] (PROCESSOR_3)
+         agent [action_event, get_line_status, put_line_status, put_cache_miss, get_cache_miss] (processor_3)
       end par
    ||
-      REMOTE_DIRECTORY [GET_LINE_STATUS, PUT_LINE_STATUS]
+      REMOTE_DIRECTORY [ put_cache_miss, get_cache_miss]
    end par
 end process
 
 -------------------------------------------------------------------------------
 
-process REMOTE_DIRECTORY [GET_LINE_STATUS,
-                          PUT_LINE_STATUS : LINE_STATUS_CHANNEL]
+process REMOTE_DIRECTORY [put_cache_miss, 
+			  get_cache_miss : cache_miss_channel
+			  put_line_status, get_line_status : line_status_channel]
 is
-   var LINE : LINE_T,
-       SL1, SL2, SL3, STATUS : STATE,
-       AGL1, AGL2, AGL3, AGENT : PROCESSOR
-   in
-      SL1:= INVALID; SL2:= INVALID; SL3 := INVALID;
-      AGL1 := PROCESSOR_1; AGL2 := PROCESSOR_2; AGL3 := PROCESSOR_3;
+   var line : line_t,
+       SL1, SL2, SL3, status : state,
+       p1, p2, p3, processor_id : processor,
+       rd, write, back, miss_type : miss
+   in  
+       SL1:= invalid, SL2:= invalid, SL3:= invalid;
+       (*add variables to include sharers here a basic array that holds up to three values and values can be removed or added accordingly*)
+       
       loop
-         select
- 	    GET_LINE_STATUS (?LINE, ?STATUS, ?AGENT) where
-	       (((LINE == L1) and (STATUS == SL1) and (AGENT == AGL1)) or
-                ((LINE == L2) and (STATUS == SL2) and (AGENT == AGL2)) or
-                ((LINE == L3) and (STATUS == SL3) and (AGENT == AGL3)))
-               and NORMAL (STATUS, AGENT)
-         []
-	    PUT_LINE_STATUS (?LINE, ?STATUS, ?AGENT) where
-              NORMAL (STATUS, AGENT);
-            case LINE in
-                 L1 -> SL1 := STATUS; AGL1 := AGENT
-	       | L2 -> SL2 := STATUS; AGL2 := AGENT
-	       | L3 -> SL3 := STATUS; AGL3 := AGENT
-            end case
-         end select
+         
+         get_cache_miss(?processor_id , ?miss_type, ?line)
+         get_line_status(line,?status, processor_id)
+         case miss_type in
+            rd -> case status in
+                      invalid -> put_line_status(line, shared,  processor_id)
+                      (* add to array of sharers current processor *)
+                      
+                      shared-> put_line_status(line, shared,  processor_id)
+                      (* add t oarray of sharrers current processor *)
+                      
+                      exclusive-> put_line_status(line, shared,  processor_id)
+                      (* add current processor to sharers *) 
+                                  action_event(processor_id, fetch, line)
+                  end case            
+            write-> if (status == shared) then
+                        put_line_status(line, invalid)
+                        put_line_status(line, exclusive, processor_id)
+                        (* clear sharers array except for current processor*)
+                    end if
+                    (* if invalid for all processors ie unchached then put status to exclusive for current processor
+                    if (status == invalid) then *)
+                    (* if current processor is exclusive with line change nothging *)
+            
+            (* put status to invalid for all processors at this line.*)
+            back-> 
+
       end loop      
    end var
 end process
 
 -------------------------------------------------------------------------------
 
-process AGENT [ACTION_EVENT : ACTION_EVENT_CHANNEL,
-               GET_LINE_STATUS,
-               PUT_LINE_STATUS : LINE_STATUS_CHANNEL] (PROCESSOR_ID : PROCESSOR)
+process agent [action_event : action_event_channel,
+               get_line_status,
+               put_line_status : line_status_channel, put_cache_miss, 
+			  get_cache_miss : cache_miss_channel] (processor_id : processor)
 is
-   var EVENT:REQUEST, LINE:LINE_T, STATUS:STATE, AGENT:PROCESSOR in 
+   var event:request, line:line_t, status:state, agent:processor in 
       loop
-         ACTION_EVENT (PROCESSOR_ID,?EVENT,?LINE) where ISALLOWEDLINE (LINE);
-         GET_LINE_STATUS (LINE, ?STATUS,?AGENT);
-         case EVENT in
-        READ -> if ISLOCAL (LINE,PROCESSOR_ID) then
-                       case STATUS in
-                            INVALID | SHARED -> PUT_LINE_STATUS (LINE, SHARED, PROCESSOR_ID)
-                          | EXCLUSIVE  -> if (AGENT == PROCESSOR_ID) then
-                                          PUT_LINE_STATUS (LINE, EXCLUSIVE, PROCESSOR_ID)
+         action_event (processor_id, ?event, ?line)
+         get_line_status (line, ?status,?agent);
+         case event in
+                 read ->  case status in
+                              invalid-> put_cache_miss(processor_id, read_miss, line)
+                                        get_cache_miss([processor_id, 
+                            | shared -> put_line_status (line, shared, processor_id)
+                            | exclusive  -> if (agent == processor_id) then
+                                          put_line_status (line, exclusive, processor_id)
                                        else
-                                          PUT_LINE_STATUS (LINE, SHARED, PROCESSOR_ID)
+                                          put_line_status (line, shared, processor_id)
                                        end if 
                        end case
-                    else
-                       PUT_LINE_STATUS (LINE, SHARED, PROCESSOR_ID)
-                    end if
-        | WRITE -> if ISLOCAL (LINE,AGENT) then
-			case STATUS in
-			INVALID | EXCLUSIVE -> PUT_LINE_STATUS (LINE, EXCLUSIVE, PROCESSOR_ID)
-			| SHARED -> if (AGENT == PROCESSOR_ID) then
-			    PUT_LINE_STATUS(LINE, EXCLUSIVE, PROCESSOR_ID)
-			  else
-			    PUT_LINE_STATUS(LINE, INVALID, AGENT)
-			  end if
-			end case
- 	              end if
-	    | FETCH -> PUT_LINE_STATUS(LINE, SHARED, PROCESSOR_ID)
-        | INVALIDATE -> PUT_LINE_STATUS(LINE, INVALID, PROCESSOR_ID)
+ 
+                       put_line_status (line, shared, processor_id) 
+
+                | write -> 	case status in
+                                invalid | exclusive -> put_line_status (line, exclusive, processor_id)
+                                | shared -> if (agent == processor_id) then
+                                                    put_line_status(line, exclusive, processor_id)
+                                            else
+                                                    put_line_status(line, invalid, PROCESSSOR_id)
+                                            end if
+                            end case
+                end if
+                | fetch -> put_line_status(line, shared, processor_id)
+                | invalidate -> put_line_status(line, invalid, processor_id)
+                
          end case
+         
       end loop
    end var
 end process
