@@ -31,9 +31,13 @@ type processor is
 end type
 
 -------------------------------------------------------------------------------
+type sharers is 
+    array[0 .. 2] of processor
+end type
+-------------------------------------------------------------------------------
 
 type line_t is
-   L1, L2, L3
+   L1, L2, L3 of sharers
    with "==", "<>"
 end type
 
@@ -117,7 +121,7 @@ is
             rd -> case status in
                       invalid -> put_line_status(line, shared,  processor_id)
                       (* add to array of sharers current processor *)
-                      
+                      (* if line[0] != processor and line[1] != processor and line[2] != processor if processor_1-> line[0]:= processor_1 else if processor_2 -> line[1]:= processor_2, else if processor_3 -> line[2]:= processor_3 *) 
                       shared-> put_line_status(line, shared,  processor_id)
                       (* add t oarray of sharrers current processor *)
                       
