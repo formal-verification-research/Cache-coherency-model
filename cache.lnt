@@ -121,26 +121,49 @@ is
          case miss_type in
             rd -> case status in
                       invalid -> put_line_status(line, shared,  processor_id)
-                      (* add to array of sharers current processor *)
-                      (* if line[0] != processor and line[1] != processor and line[2] != processor if processor_1-> line[0]:= processor_1 else if processor_2 -> line[1]:= processor_2, else if processor_3 -> line[2]:= processor_3 *) 
-                      shared-> put_line_status(line, shared,  processor_id)
+                    
+					(* add to array of sharers current processor *)
+								line:= insert(processor_id, line)
+                     shared-> put_line_status(line, shared,  processor_id)
                       (* add t oarray of sharrers current processor *)
-                      
+								line:= insert(processor_id, line)
                       exclusive-> put_line_status(line, shared,  processor_id)
                       (* add current processor to sharers *) 
-                                  action_event(processor_id, fetch, line)
+								line:=insert(processor_id, line)	
+                                action_event(processor_id, fetch, line)
                   end case            
             write-> if (status == shared) then
-                        put_line_status(line, invalid)
-                        put_line_status(line, exclusive, processor_id)
+						if processor_id == p1 then
+							put_line_status(line, invalid, p2)
+							put_line_status(line, invalid, p3)
+							line:= remove(p2, line)
+							line:= remove(p3, line)
+						end if
+						else if processor_id == p2 then
+							put_line_status(line, invalid, p1)
+							put_line_status(line, invalid, p3)
+							line:= remove(p1, line)
+							line:= remove(p3, line)
+						end if
+						else if processor_id == p3 then
+							put_line_status(line, invalid, p1)
+							put_line_status(line, invalid, p2)
+							line:= remove(p1, line)
+							line:= remove(p2, line)
+						end if 
                         (* clear sharers array except for current processor*)
+						
                     end if
-                    (* if invalid for all processors ie unchached then put status to exclusive for current processor
-                    if (status == invalid) then *)
-                    (* if current processor is exclusive with line change nothging *)
+                    (* if invalid for all processors ie unchached then put status to exclusive for current processor *)
+                    if (status == invalid) then 
+						put_line_status(line, exclusive, processor_id)
+					end if
+                    (* if current processor is exclusive with line change nothing *)
             
             (* put status to invalid for all processors at this line.*)
-            back-> 
+            back-> put_line_status(line, invalid, p1)
+				   put_line_status(line, invalid, p2)
+				   put_line_status(line, invalid, p3)
 
       end loop      
    end var
