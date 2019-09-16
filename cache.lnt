@@ -33,7 +33,7 @@ end type
 -------------------------------------------------------------------------------
 type sharers is 
     set of processor
-	with "insert" , "remove " , "empty"
+	with "insert" , "remove " , "empty" , "member"
 end type
 -------------------------------------------------------------------------------
 
@@ -121,42 +121,54 @@ is
          case miss_type in
             rd -> case status in
                       invalid -> put_line_status(line, shared,  processor_id)
-                    
+								  put_cache_miss(processor_id, miss_type, line)
 					(* add to array of sharers current processor *)
 								line:= insert(processor_id, line)
                      shared-> put_line_status(line, shared,  processor_id)
                       (* add t oarray of sharrers current processor *)
 								line:= insert(processor_id, line)
+								put_cache_miss(processor_id, miss_type, line)
+
                       exclusive-> put_line_status(line, shared,  processor_id)
                       (* add current processor to sharers *) 
 								line:=insert(processor_id, line)	
                                 action_event(processor_id, fetch, line)
+								put_cache_miss(processor_id, miss_type, line)
+
                   end case            
             write-> if (status == shared) then
+	(* clear sharers array except for current processor*)
+
 						if processor_id == p1 then
 							put_line_status(line, invalid, p2)
 							put_line_status(line, invalid, p3)
 							line:= remove(p2, line)
 							line:= remove(p3, line)
+							put_cache_miss(processor_id, miss_type, line)
+
 						end if
 						else if processor_id == p2 then
 							put_line_status(line, invalid, p1)
 							put_line_status(line, invalid, p3)
 							line:= remove(p1, line)
 							line:= remove(p3, line)
+							put_cache_miss(processor_id, miss_type, line)
+
 						end if
 						else if processor_id == p3 then
 							put_line_status(line, invalid, p1)
 							put_line_status(line, invalid, p2)
 							line:= remove(p1, line)
 							line:= remove(p2, line)
+							put_cache_miss(processor_id, miss_type, line)
+
 						end if 
-                        (* clear sharers array except for current processor*)
 						
                     end if
                     (* if invalid for all processors ie unchached then put status to exclusive for current processor *)
                     if (status == invalid) then 
 						put_line_status(line, exclusive, processor_id)
+						put_cache_miss(processor_id, miss_type, line)
 					end if
                     (* if current processor is exclusive with line change nothing *)
             
@@ -164,6 +176,7 @@ is
             back-> put_line_status(line, invalid, p1)
 				   put_line_status(line, invalid, p2)
 				   put_line_status(line, invalid, p3)
+				   put_cache_miss(processor_id, miss_type, line)
 
       end loop      
    end var
@@ -182,28 +195,50 @@ is
          get_line_status (line, ?status,?agent);
          case event in
                  read ->  case status in
-                              invalid-> put_cache_miss(processor_id, read_miss, line)
-                                        get_cache_miss([processor_id, 
-                            | shared -> put_line_status (line, shared, processor_id)
+                            invalid-> put_cache_miss(processor_id, read_miss, line)
+                                        get_cache_miss(processor_id, ?read_miss, line)
+										put_line_status(line,shared,processor_id)
+										
+                            | shared -> if (member(processor_id,line) then
+										else
+											put_cache_miss(processor_id, read_miss, line)
+											get_cache_miss(processor_id, ?read_miss, line)
+											put_line_status(line, shared, processor_id)
+										end if
+										
                             | exclusive  -> if (agent == processor_id) then
-                                          put_line_status (line, exclusive, processor_id)
-                                       else
-                                          put_line_status (line, shared, processor_id)
-                                       end if 
+											else
+												put_cache_miss(processor_id, read_miss, line)
+												get_cache_miss(processor_id, ?read_miss, line)
+												put_line_status (line, shared, processor_id)
+											end if 
                        end case
  
-                       put_line_status (line, shared, processor_id) 
-
-                | write -> 	case status in
-                                invalid | exclusive -> put_line_status (line, exclusive, processor_id)
-                                | shared -> if (agent == processor_id) then
+                | write -> case status in
+                            invalid -> put_cache_miss(processor_id, write_miss, line)
+										get_cache_miss(processor_id, ?write_miss, line)
+										put_line_status(line, exclusive, processor_id)
+										
+							| exclusive -> if(agent == processor_id) then
+											else
+												put_cache_miss(processor_id, write_back, line)
+												get_cache_miss(processor_id, ?write_back, line)
+												put_cache_miss(processor_id, write_miss, line)
+												get_cache_miss(processor_id, ?write_miss, line)
+												put_line_status(line, exclusive, processor_id)
+											end if
+											
+                            | shared -> if (agent == processor_id) then
+													put_cache_miss(processor_id, write_miss, line)
+													get_cache_miss(processor_id, ?write_miss, line)
                                                     put_line_status(line, exclusive, processor_id)
                                             else
-                                                    put_line_status(line, invalid, PROCESSSOR_id)
+                                                    put_line_status(line, invalid, processor_id)
                                             end if
                             end case
-                end if
-                | fetch -> put_line_status(line, shared, processor_id)
+                | fetch ->  put_cache_miss(processor_id, write_back, line)
+							get_cache_miss(processor_id, ?write_back, line)
+							put_line_status(line, shared, processor_id)
                 | invalidate -> put_line_status(line, invalid, processor_id)
                 
          end case
