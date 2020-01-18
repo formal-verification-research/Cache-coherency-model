@@ -1,0 +1,73 @@
+
+property P1
+ | check for deadlock freedom
+
+svl clean info: [temporary] svl001_formula_inline
+
+svl clean info: [persistent] deadlock.bcg
+
+svl clean info: [temporary] svl001_formula_inline.mcl
+
+svl clean info: [temporary] svl001_formula_inline.xm
+
+"svl001_formula_inline.mcl" =
+    [true*] <true> true
+
+"deadlock.bcg" = verify "svl001_formula_inline.mcl" in "svl010_smart_all.bcg"
+
+svl clean info: [temporary] svl000_output.bcg
+
+svl clean info: [temporary] evaluator4
+
+svl clean info: [temporary] evaluator4.o
+
+% bcg_open   "svl010_smart_all.bcg"  evaluator4 -source "properties.svl:8" -dfs -diag "svl000_output.bcg"  "svl001_formula_inline.mcl"
+
+svl clean info: [temporary] svl000_stdout
+bcg_open: using ``/opt/software/cadp/bin.x64/evaluator4.a''
+bcg_open: running ``evaluator4 -source properties.svl:8 -dfs -diag svl000_output.bcg svl001_formula_inline.mcl'' for ``./svl010_smart_all.bcg''
+
+FALSE
+*** diagnostic sequence found at depth 9
+
+<initial state>
+"INSTRUCTION !PROCESSORCACHE_3 !CPU_WRITE !MEMBLOCK_3"
+"INSTRUCTION !PROCESSORCACHE_2 !CPU_WRITE !MEMBLOCK_3"
+"INSTRUCTION !PROCESSORCACHE_1 !CPU_WRITE !MEMBLOCK_3"
+"DIRECTORYREQUEST !PROCESSORCACHE_3 !WRITE_MISS !MEMBLOCK_3"
+"DATAVALUEREPLY !PROCESSORCACHE_3 !DATA !MEMBLOCK_3"
+"INSTRUCTION !PROCESSORCACHE_3 !CPU_WRITE !MEMBLOCK_3"
+"DIRECTORYREQUEST !PROCESSORCACHE_3 !WRITE_MISS !MEMBLOCK_3"
+"DATAVALUEREPLY !PROCESSORCACHE_3 !INVALIDATE !MEMBLOCK_3"
+"INSTRUCTION !PROCESSORCACHE_3 !CPU_WRITE !MEMBLOCK_3"
+<goal state>
+command exit with status 0
+
+% bcg_io   "svl000_output.bcg"   "deadlock.bcg"
+command exit with status 0
+
+property P2
+ | check that for each request to the directory a reply is sent
+
+svl clean info: [temporary] svl002_formula_inline
+
+svl clean info: [persistent] livenes.bcg
+
+svl clean info: [temporary] svl002_formula_inline.mcl
+
+svl clean info: [temporary] svl002_formula_inline.xm
+
+"svl002_formula_inline.mcl" =
+    <true* . {?"directoryRequest !processorCache_1 !read_miss !memBlock_1" ?n:Nat } . true* . { ?"dataValueReply !processorCache_1 !data !memBlock_1" !n} > true
+
+"livenes.bcg" = verify "svl002_formula_inline.mcl" in "svl010_smart_all.bcg"
+
+svl clean info: [temporary] svl000_output.bcg
+
+svl clean info: [temporary] evaluator4
+
+svl clean info: [temporary] evaluator4.o
+
+% bcg_open   "svl010_smart_all.bcg"  evaluator4 -source "properties.svl:17" -dfs -diag "svl000_output.bcg"  "svl002_formula_inline.mcl"
+
+svl clean info: [temporary] svl000_stdout

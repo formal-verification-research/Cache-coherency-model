@@ -1,0 +1,380 @@
+
+module DIRCOH is
+
+(******************************************************************************
+ * Data types
+ *****************************************************************************)
+
+type insts is
+   cpu_read, cpu_write
+   with "==", "<>"
+end type
+
+-------------------------------------------------------------------------------
+
+type processorCache is
+   processorCache_1, processorCache_2, processorCache_3
+   with "==", "<>"
+end type
+
+-------------------------------------------------------------------------------
+
+type memBlock is
+   memBlock_1, memBlock_2, memBlock_3
+   with "==", "<>"
+end type
+
+
+
+-------------------------------------------------------------------------------
+
+type processorCacheState is
+   invalid, shared, modified
+   with "==", "<>"
+end type 
+-------------------------------------------------------------------------------
+type directoryState is
+	uncached, shared, exclusive
+	with "==", "<>"
+end type
+------------------------------------------------
+type request is
+	read_miss, write_miss, write_back
+	with "==", "<>"
+end type
+-------------------------------------------------
+type reply is
+	fetch, invalidate, data
+	with "==", "<>"
+end type 
+-------------------------------------------------
+type processorSet is
+	set of processorCache
+	with "remove", "empty", "member", "head"
+end type 
+-------------------------------------------------
+type local is
+	set of memBlock
+	with "remove", "empty", "member", "head"
+end type 
+-------------------------------------------------------------------------------
+   
+(*****************************************************************************
+ * Channel types
+ *****************************************************************************)
+
+channel directoryRequestchannel is
+   (processorCache, request,memBlock)
+end channel
+
+-------------------------------------------------------------------------------
+
+channel nextInstruction is
+   (processorCache, insts, memBlock)
+end channel
+-------------------------------------------
+channel directoryReply is 
+	(processorCache, reply, memBlock)
+end channel
+
+(*****************************************************************************
+ * Processes
+ *****************************************************************************)
+
+process MAIN [instruction    : nextInstruction,
+              dataValueReply : directoryReply,
+              directoryRequest : directoryRequestchannel]
+is
+   par dataValueReply, directoryRequest in
+      par
+         pCache [instruction, dataValueReply, directoryRequest] (processorCache_1)
+      ||
+         pCache [instruction, dataValueReply, directoryRequest] (processorCache_2)
+      ||
+         pCache [instruction, dataValueReply, directoryRequest] (processorCache_3)
+      end par
+   ||
+      REMOTE_DIRECTORY [dataValueReply, directoryRequest]
+   end par
+end process
+
+-------------------------------------------------------------------------------
+
+process REMOTE_DIRECTORY [dataValueReply : directoryReply,
+                          directoryRequest : directoryRequestchannel]
+is
+   var block : memBlock,
+       block_1State, block_2State, block_3State, state : directoryState,
+       pCache_1, pCache_2, pCache_3, pCache,owner : processorCache,
+		req : request,
+	   sblock_1, sblock_2, sblock_3, sharers : processorSet	   
+	in 
+								   
+		block_1State:= uncached    ;
+		block_2State:= uncached    ;
+		block_3State:= uncached    ;
+	    pCache_1:= processorCache_1;
+		pCache_2:= processorCache_2;
+		pCache_3:= processorCache_3;
+		sblock_1:= {}              ;
+		sblock_2:= {}              ;
+		sblock_3:= {}              ;
+		
+	   loop
+			directoryRequest(?pCache, ?req, ?block);
+			case block in 
+			 memBlock_1 -> sharers := sblock_1;
+						  state := block_1State
+			 |memBlock_2 -> sharers := sblock_2;
+						   state := block_2State
+			 |memBlock_3 -> sharers := sblock_3;
+						   state := block_3State
+		    end case; 
+			case state in 
+				uncached -> case req in
+								read_miss -> sharers:= insert(pCache, sharers);
+											dataValueReply(pCache, data, block);
+											state := shared
+											
+								|write_miss -> dataValueReply(pCache, data, block);
+											   sharers:= insert(pCache, sharers);
+											   state := exclusive
+								|write_back -> NULL
+							end case 
+						
+				|shared -> case req in 
+								read_miss -> sblock_1:= insert(pCache, sblock_1);
+											dataValueReply(pCache, data, block)
+											
+								|write_miss -> case pCache in 
+													processorCache_1 -> if member( pCache_2, sharers) then 
+																			dataValueReply(pCache_2, invalidate, block);
+																			sharers := remove(pCache_2, sharers)
+																		end if;
+																		if member(pCache_3, sharers) then
+																			dataValueReply(pCache_3, invalidate, block);
+																			sharers:= remove(pCache_3, sharers)
+																		end if;
+																		if member(pCache_1, sharers) then 
+																			NULL
+																		else 
+																			sharers := insert(pCache, sharers)
+																		end if; 
+																		dataValueReply(pCache, data, block);
+																		state := exclusive
+																		
+													|processorCache_2 -> if member( pCache_1, sharers) then 
+																			dataValueReply(pCache_1, invalidate, block);
+																			sharers := remove(pCache_1, sharers)
+																		end if;
+																		if member(pCache_3, sharers) then
+																			dataValueReply(pCache_3, invalidate, block);
+																			sharers:= remove(pCache_3, sharers)
+																		end if;
+																		dataValueReply(pCache, data, block);
+																		if member(pCache_2, sharers) then
+																			NULL
+																		else 
+																			sharers := insert(pCache, sharers)
+																		end if;
+																		state := exclusive
+																		
+													|processorCache_3 -> if member( pCache_2, sharers) then 
+																			dataValueReply(pCache_2, invalidate, block);
+																			sharers := remove(pCache_2, sharers)
+																		end if;
+																		if member(pCache_1, sharers) then
+																			dataValueReply(pCache_1, invalidate, block);
+																			sharers:= remove(pCache_1, sharers)
+																		end if;
+																		dataValueReply(pCache, data, block);
+																		if member(pCache_3, sharers) then 
+																			NULL 
+																		else 
+																			sharers := insert(pCache, sharers)
+																		end if;
+																		state := exclusive
+												end case 
+								|write_back -> NULL
+							end case 
+				|exclusive -> case req in 
+								read_miss -> owner:= head(sharers);
+											dataValueReply(owner, fetch, block);
+											directoryRequest(owner, write_back, block);
+											sharers:= insert(pCache, sharers);
+											dataValueReply(pCache, data, block);
+											state := shared
+								|write_miss -> owner := head(sharers);
+											dataValueReply(owner, invalidate, block);
+											directoryRequest(owner, write_back, block);
+											dataValueReply(pCache, data, block);
+											sharers := remove(owner, sharers);
+											sharers := insert(pCache, sharers)
+								|write_back -> sharers := {};
+											state := uncached
+							end case 
+			end case;
+			
+			case block in 
+				memBlock_1 -> sblock_1 := sharers;
+							block_1State := state
+				|memBlock_2 -> sblock_2 := sharers;
+							block_2State := state
+				|memBlock_3 -> sblock_3 := sharers;
+							block_3State := state
+		    end case
+		end loop
+   end var
+end process
+
+-------------------------------------------------------------------------------
+
+process pCache [instruction : nextInstruction,
+               dataValueReply : directoryReply,
+               directoryRequest : directoryRequestchannel] (pCache_ID : processorCache)
+is
+   var inst : insts,
+		block : memBlock, 
+		rpy : reply,
+		pstate_1, pstate_2, pstate_3, state:processorCacheState,
+		locals : local, 
+		notwaiting, interupt : bool
+	in 
+		locals := {}       ;
+		pstate_1 := invalid;
+		pstate_2 := invalid;
+		pstate_3 := invalid;
+		notwaiting := true ;
+		interupt := true;
+		
+		loop
+			disrupt
+				instruction(pCache_ID, ?inst, ?block) where notwaiting;
+				case block in 
+					memBlock_1 -> state := pstate_1
+					|memBlock_2 -> state:= pstate_2	  
+					|memBlock_3 -> state := pstate_3		  
+				end case; 
+				
+				case state in 
+					invalid -> case inst in 
+									cpu_read -> directoryRequest(pCache_ID, read_miss, block);
+												interupt := false;
+												state:= shared;
+												notwaiting:= false
+												--directoryReply(pCache_ID, data, block);
+												--locals := insert(block, locals)
+												
+									|cpu_write -> directoryRequest(pCache_ID, write_miss, block);
+												  --directoryReply(pCache_ID, data, block);
+												  interupt := false;
+												  notwaiting:= false;
+												  state:= modified
+												 -- locals := insert(block, locals)
+								end case 
+								
+					|shared -> case inst in 
+									cpu_read -> if member(block, locals) then
+													NULL
+												else
+													directoryRequest(pCache_ID, read_miss, block);
+													interupt := false;
+													notwaiting:= false
+													--directoryReply(pCache_ID, data, block)
+												end if
+												
+									|cpu_write -> 	directoryRequest(pCache_ID, write_miss, block);	
+													interupt := false;
+													state:= modified;
+													notwaiting := false
+													
+											(******* have the indiviual local caches invalidate each other... 
+												if member(block, locals) then
+													case pCache_ID in
+														processorCache_1 -> dataValueReply(processorCache_2, invalidate, block);
+																			dataValueReply(processorCache_3, invalidate, block)
+														|processorCache_2 -> dataValueReply(processorCache_1, invalidate, block);
+																			dataValueReply(processorCache_3, invalidate, block)
+														|processorCache_3 -> dataValueReply(processorCache_1, invalidate, block);
+																			dataValueReply(processorCache_2, invalidate, block)
+													end case 
+												   else 
+														directoryRequest(pCache_ID, write_miss, block);
+														notwaiting:= false
+														--directoryReply(pCache_ID, data, block)
+												  end if;
+												  
+												  ***)
+												
+								end case 
+								
+					|modified -> case inst in 
+									cpu_read -> if member(block, locals) then
+													NULL
+												else
+													directoryRequest(pCache_ID, write_back, block);
+													directoryRequest(pCache_ID, read_miss, block);
+													interupt := false;
+													notwaiting:= false;
+													--directoryReply(pCache_ID, data, block);
+													state:= shared
+												end if
+												
+									|cpu_write -> if member(block, locals) then
+													NULL
+												  else 
+													directoryRequest(pCache_ID, write_back, block);
+													directoryRequest(pCache_ID, write_miss, block);
+													interupt := false;
+													notwaiting:= false
+													--directoryReply(pCache_ID, data, block)
+												  end if
+								end case 
+				end case;
+				case block in 
+					memBlock_1 -> pstate_1 := state
+					|memBlock_2 -> pstate_2:= state	  
+					|memBlock_3 -> pstate_3 := state		  
+				end case;
+				interupt:= true
+			by
+				dataValueReply(pCache_ID, ?rpy, ?block) where interupt;
+				case block in 
+					memBlock_1 -> state := pstate_1
+					|memBlock_2 -> state:= pstate_2	  
+					|memBlock_3 -> state := pstate_3		  
+				end case;
+				case rpy in 
+					fetch -> if (state == modified) then
+								directoryRequest(pCache_ID, write_back, block);
+								notwaiting := false;
+								state:= shared 
+							 end if
+							 
+					|invalidate -> if (state == shared) then
+										state := invalid 
+									elsif ( state == modified ) then 
+										directoryRequest(pCache_ID, write_back, block);
+										notwaiting := true;
+										state:= invalid
+									end if
+				
+					|data -> if member(block, locals) then
+								notwaiting := true
+							 else 
+								locals := insert(block, locals);
+								notwaiting := true
+							end if
+							
+				end case;
+				case block in 
+					memBlock_1 -> pstate_1 := state
+					|memBlock_2 -> pstate_2:= state	  
+					|memBlock_3 -> pstate_3 := state		  
+				end case
+			end disrupt
+		end loop
+   end var
+end process
+
+end module

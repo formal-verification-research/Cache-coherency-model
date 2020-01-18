@@ -1,0 +1,19 @@
+-- Step 1: compositional generation of the LNT specification
+
+% DEFAULT_PROCESS_FILE="dircoh.lnt";
+% DEFAULT_MCL_LIBRARIES="standard.mcl"
+
+"cache.bcg" = smart divbranching reduction of
+
+par dataValueReply, directoryRequest in
+      par
+         pCache [instruction, dataValueReply, directoryRequest] (processorCache_1)
+      ||
+         pCache [instruction, dataValueReply, directoryRequest] (processorCache_2)
+      ||
+         pCache [instruction, dataValueReply, directoryRequest] (processorCache_3)
+      end par
+   ||
+      REMOTE_DIRECTORY [dataValueReply, directoryRequest]
+   end par;		
+
