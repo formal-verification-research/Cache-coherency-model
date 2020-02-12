@@ -5,7 +5,7 @@
 property P1 
 	"check for deadlock freedom"
 is
-	"deadlock.bcg" = "svl010_smart_all.bcg" |= with evaluator4
+	"deadlock.bcg" = "cache.bcg" |= with evaluator4
 		[true*] <true> true;
 end property;
 
@@ -14,7 +14,7 @@ end property;
 property P2 
 	"check that for each request to the directory a reply is sent"
 is 
-	"livenes.bcg" = "svl010_smart_all.bcg" |= with evaluator4
+	"livenes.bcg" = "cache.bcg" |= with evaluator4
 		<true* . {?"directoryRequest !processorCache_1 !read_miss !memBlock_1" ?n:Nat } . true* . { ?"dataValueReply !processorCache_1 !data !memBlock_1" !n} > true;
 end property
 
@@ -23,6 +23,7 @@ end property
 property P3 
 	"if a processor sends a request to the directory it will get a reply"
 is
+	"safety.bcg" = "cache.bcg" |= with evaluator4
 		[true * .  "directoryRequest !processorCache_1 !read_miss !memBlock_1"  . (not  "dataValueReply !processorCache_1 !data !memBlock_1"  )* ] < (not "dataValueReply !processorCache_1 !data !memBlock_1" )* . "dataValueReply !processorCache_1 !data !memBlock_1" > 
 		expected true
 end property	*)

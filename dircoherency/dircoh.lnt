@@ -246,6 +246,7 @@ is
 		pstate_3 := invalid;
 		notwaiting := true ;
 		interupt := true;
+		inst := cpu_read;
 		
 		loop
 			disrupt
