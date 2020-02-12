@@ -3,7 +3,7 @@
 % DEFAULT_PROCESS_FILE="dircoh.lnt";
 % DEFAULT_MCL_LIBRARIES="standard.mcl"
 
-"cache.bcg" = smart divbranching reduction of
+"cache.bcg" = smart divbranching reduction of hide all 
 
 par dataValueReply, directoryRequest in
       par

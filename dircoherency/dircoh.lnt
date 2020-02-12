@@ -287,26 +287,8 @@ is
 													interupt := false;
 													state:= modified;
 													notwaiting := false
-													
-											(******* have the indiviual local caches invalidate each other... 
-												if member(block, locals) then
-													case pCache_ID in
-														processorCache_1 -> dataValueReply(processorCache_2, invalidate, block);
-																			dataValueReply(processorCache_3, invalidate, block)
-														|processorCache_2 -> dataValueReply(processorCache_1, invalidate, block);
-																			dataValueReply(processorCache_3, invalidate, block)
-														|processorCache_3 -> dataValueReply(processorCache_1, invalidate, block);
-																			dataValueReply(processorCache_2, invalidate, block)
-													end case 
-												   else 
-														directoryRequest(pCache_ID, write_miss, block);
-														notwaiting:= false
-														--directoryReply(pCache_ID, data, block)
-												  end if;
-												  
-												  ***)
 												
-								end case 
+									end case 
 								
 					|modified -> case inst in 
 									cpu_read -> if member(block, locals) then
@@ -363,6 +345,11 @@ is
 								notwaiting := true
 							 else 
 								locals := insert(block, locals);
+								if (inst == cpu_read) then 
+									state:= shared
+								elsif (inst == cpu_write) then 
+									state:= modified
+								end if;
 								notwaiting := true
 							end if
 							
